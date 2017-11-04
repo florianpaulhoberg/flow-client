@@ -100,7 +100,8 @@ class Activity(object):
 
         """
         logging.debug("Fetching TCX file for %s", self.data['url'])
-        tcx_url = FLOW_URL + self.data['url'] + '/export/tcx'
+        idActivity = filter(str.isdigit,str(self.data['url']))
+        tcx_url = FLOW_URL + '/api/export/training/tcx/' + idActivity + '?compress=true'
 
         resp = self.session.get(tcx_url)
         resp.raise_for_status()
@@ -113,6 +114,17 @@ class Activity(object):
             #   * Some custom TCX object?
             return tcx_zip.read(tcx_name)
 
+    def weight(self):
+        """Return the users weight from profile/settings page
+        """
+        weight_url = FLOW_URL + '/settings/'
+        resp = self.session.get(weight_url)
+        resp.raise_for_status()
+        for line in resp.content.split('\n'):
+            if "placeholder=Weight" in line:
+                weight = re.sub("\D", "", line)
+                weight = weight[:-1]
+                return weight
 
 def _format_date(dt):
     return dt.strftime('%d.%m.%Y')
